@@ -234,6 +234,15 @@ fun DashboardScreen() {
     }
 }
 
+// ================================================================
+// Redesigned HomeTab — paste this in place of the existing HomeTab()
+// function inside DashboardScreen.kt. Uses the same DashboardState,
+// same theme colors (GradientGreenStart/End, TextDarkGreen,
+// TextSecondaryGray, CardSurface, ChipTintGreen, AccentGold,
+// StatusWarningRed, StatusSafeGreen) that are already defined in
+// your ui/theme package — no new colors needed.
+// ================================================================
+
 @Composable
 private fun HomeTab(
     state: DashboardState,
@@ -246,38 +255,56 @@ private fun HomeTab(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
+        // ---------- Top bar: brand + greeting + avatar ----------
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                "safespend.",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDarkGreen
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Filled.Notifications,
+                    contentDescription = "Notifications",
+                    tint = TextDarkGreen,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(38.dp)
                         .background(
                             Brush.linearGradient(listOf(GradientGreenStart, GradientGreenEnd)),
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("S", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text("Hi, there!", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDarkGreen)
-                    Text("Welcome back", fontSize = 12.sp, color = TextSecondaryGray)
+                    Text("B", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
             }
-            Icon(
-                Icons.Filled.Notifications,
-                contentDescription = "Notifications",
-                tint = TextDarkGreen,
-                modifier = Modifier.size(24.dp)
-            )
         }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Text("Hi there,", fontSize = 13.sp, color = TextSecondaryGray)
+        Text(
+            "Welcome Back!",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextDarkGreen
+        )
+        Text(
+            "Here's your latest safe-to-spend overview",
+            fontSize = 12.sp,
+            color = TextSecondaryGray
+        )
 
         if (state.errorMessage != null) {
             Spacer(modifier = Modifier.height(14.dp))
@@ -291,12 +318,7 @@ private fun HomeTab(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        state.errorMessage ?: "",
-                        color = StatusWarningRed,
-                        fontSize = 12.sp,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Text(state.errorMessage ?: "", color = StatusWarningRed, fontSize = 12.sp, modifier = Modifier.weight(1f))
                     Text(
                         "Retry",
                         color = StatusWarningRed,
@@ -310,10 +332,11 @@ private fun HomeTab(
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // ---------- Big dark gradient balance-style card ----------
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(28.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -322,20 +345,25 @@ private fun HomeTab(
                         Brush.linearGradient(
                             colors = listOf(GradientGreenStart, GradientGreenEnd),
                             start = Offset(0f, 0f),
-                            end = Offset(800f, 900f)
+                            end = Offset(900f, 900f)
                         )
                     )
                     .padding(22.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        "Daily Safe-to-Spend",
-                        color = Color.White.copy(alpha = 0.75f),
-                        fontSize = 13.sp
-                    )
+                    Column {
+                        Text("Current Balance", color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
+                        Text(
+                            formatRupeesShared(state.currentBalance),
+                            color = Color.White,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     Surface(shape = RoundedCornerShape(50), color = ChipTranslucentWhite) {
                         Text(
                             text = if (state.shortfallRisk) "RISK" else "SAFE",
@@ -347,72 +375,112 @@ private fun HomeTab(
                     }
                 }
 
-                AnimatedRupeeText(target = state.dailySafeToSpend, suffix = " /day")
-
+                Spacer(modifier = Modifier.height(18.dp))
+                Divider(color = Color.White.copy(alpha = 0.18f), thickness = 1.dp)
                 Spacer(modifier = Modifier.height(14.dp))
 
-                Text(
-                    text = "Current ${formatRupeesShared(state.currentBalance)}  ·  Buffer ${formatRupeesShared(state.safetyBuffer)}",
-                    color = Color.White.copy(alpha = 0.85f),
-                    fontSize = 12.sp
-                )
+                Text("Daily Safe-to-Spend", color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
+                AnimatedRupeeText(target = state.dailySafeToSpend, suffix = " /day")
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = Color.White,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { scope.launch { state.loadState() } }
+                    ) {
+                        Text(
+                            "Refresh",
+                            color = GradientGreenEnd,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
+                        )
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = ChipTranslucentWhite,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { scope.launch { state.addExpenseShock() } }
+                    ) {
+                        Text(
+                            "Simulate",
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
+                        )
+                    }
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // ---------- Two white stat cards side by side ----------
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            QuickAction(
-                icon = Icons.Filled.Bolt,
-                label = "Delay Income",
-                tint = StatusWarningRed,
-                enabled = !state.isLoading
+            Card(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                scope.launch {
-                    if (state.injectIncomeDelay()) {
-                        snackbarHostState.showSnackbar("Income delay simulated")
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Expenses", fontSize = 12.sp, color = TextSecondaryGray)
+                        Icon(Icons.Filled.Receipt, contentDescription = null, tint = AccentGold, modifier = Modifier.size(16.dp))
                     }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        formatRupeesShared(state.committedExpenses),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDarkGreen
+                    )
+                    Text("Committed this month", fontSize = 10.sp, color = TextSecondaryGray)
                 }
             }
-
-            QuickAction(
-                icon = Icons.Filled.Receipt,
-                label = "Add Expense",
-                tint = AccentGold,
-                enabled = !state.isLoading
+            Card(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                scope.launch {
-                    if (state.addExpenseShock()) {
-                        snackbarHostState.showSnackbar("Expense shock added")
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Buffer", fontSize = 12.sp, color = TextSecondaryGray)
+                        Icon(Icons.Filled.Shield, contentDescription = null, tint = GradientGreenEnd, modifier = Modifier.size(16.dp))
                     }
-                }
-            }
-
-            QuickAction(
-                icon = Icons.Filled.Refresh,
-                label = "Reset Demo",
-                tint = GradientGreenEnd,
-                enabled = !state.isLoading
-            ) {
-                scope.launch {
-                    if (state.reset()) {
-                        snackbarHostState.showSnackbar("Demo reset to defaults")
-                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        formatRupeesShared(state.safetyBuffer),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDarkGreen
+                    )
+                    Text("Safety cushion", fontSize = 10.sp, color = TextSecondaryGray)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            "AI Guardian Insight",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextDarkGreen
-        )
+        Text("AI Guardian Insight", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDarkGreen)
         Spacer(modifier = Modifier.height(12.dp))
 
         Card(
@@ -424,9 +492,7 @@ private fun HomeTab(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(ChipTintGreen, CircleShape),
+                        modifier = Modifier.size(40.dp).background(ChipTintGreen, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Filled.Shield, contentDescription = null, tint = GradientGreenEnd, modifier = Modifier.size(20.dp))
@@ -457,21 +523,13 @@ private fun HomeTab(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                val approveInteraction = remember { MutableInteractionSource() }
-                val rejectInteraction = remember { MutableInteractionSource() }
-
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Surface(
                         shape = RoundedCornerShape(50),
                         color = StatusSafeGreen,
                         modifier = Modifier
                             .weight(1f)
-                            .pressScale(approveInteraction)
-                            .clickable(
-                                enabled = !state.isLoading,
-                                interactionSource = approveInteraction,
-                                indication = null
-                            ) {
+                            .clickable(enabled = !state.isLoading) {
                                 scope.launch {
                                     if (state.approveAction()) {
                                         snackbarHostState.showSnackbar("Approved: ${state.actionTitle}")
@@ -486,12 +544,7 @@ private fun HomeTab(
                         color = ChipTintGreen,
                         modifier = Modifier
                             .weight(1f)
-                            .pressScale(rejectInteraction)
-                            .clickable(
-                                enabled = !state.isLoading,
-                                interactionSource = rejectInteraction,
-                                indication = null
-                            ) {
+                            .clickable(enabled = !state.isLoading) {
                                 scope.launch {
                                     if (state.rejectAction()) {
                                         snackbarHostState.showSnackbar("Action rejected")
@@ -506,30 +559,5 @@ private fun HomeTab(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
-private fun QuickAction(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    tint: Color,
-    enabled: Boolean = true,
-    onClick: () -> Unit
-) {
-    val interaction = remember { MutableInteractionSource() }
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(54.dp)
-                .pressScale(interaction)
-                .background(CardSurface, CircleShape)
-                .clickable(enabled = enabled, interactionSource = interaction, indication = null) { onClick() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = label, tint = if (enabled) tint else TextSecondaryGray, modifier = Modifier.size(24.dp))
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(label, fontSize = 11.sp, color = TextSecondaryGray, textAlign = TextAlign.Center)
     }
 }
